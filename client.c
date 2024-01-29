@@ -9,7 +9,7 @@ typedef struct wl_registry wl_registry;
 typedef struct timespec timespec;
 
 #define status(x)                                                              \
-  if (s != 0) {                                                                \
+  if (x != 0) {                                                                \
     printf("failed\n");                                                        \
     return 1;                                                                  \
   };
