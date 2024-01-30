@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <threads.h>
+#include <time.h>
 #include <wayland-client.h>
 
+typedef struct timespec timespec;
 typedef struct wl_display_listener wl_display_listener;
 typedef struct wl_proxy wl_proxy;
 typedef struct wl_display wl_display;
@@ -44,35 +46,43 @@ int main() {
     thrd_sleep(&ts, NULL);
   }
 
-  // wl_display_listener *listener;
-  // s = wl_display_add_listener(server, listener, NULL);
-
   // wl_proxy *p;
   // uint32_t op;
   // wl_proxy_marshal(p, op /*, ...*/);
-  wl_registry *registry = wl_display_get_registry(server);
-  if (!registry) {
-    return 3;
-    printf("failed\n");
-  }
+  // wl_registry *registry = wl_display_get_registry(server);
+  // if (!registry) {
+  //   return 3;
+  //   printf("failed\n");
+  // }
+
+  // check(evloop);
 
   s = wl_display_get_error(server);
   status(s);
 
-  wl_callback *cb = wl_display_sync(server);
-  status(cb == 0 ? 1 : 0);
+  // wl_callback *cb = wl_display_sync(server);
+  // status(cb == 0 ? 1 : 0);
+
   s = wl_display_flush(server);
-  check(s > 0);
+  check(s != -1);
+  printf("flush\n");
+
+  thrd_sleep(&ts, NULL);
+  s = wl_display_dispatch(server);
+
+  s = wl_display_read_events(server);
+  status(s);
+
+  check(s != -1);
+  printf("dispatch\n");
+
+  printf("disconnecting\n");
+  wl_display_disconnect(server);
 
   // s = wl_display_roundtrip(server);
   // status(s);
   // printf("roundtrip\n");
 
-  s = wl_display_dispatch(server);
-  if (s != 0) {
-    printf("failed to read from queue\n");
-    return 1;
-  }
   // printf("read bytes\n");
 
   // wl_display_get_fd
