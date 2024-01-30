@@ -45,6 +45,7 @@ wl_event_source *create_timer(wl_event_loop *evloop, void *user_data, int ms) {
 }
 
 int start_server() {
+  setvbuf(stdout, NULL, _IONBF, 0);
   int s;
   printf("server: creating display \n");
   wl_display *disp = wl_display_create();
@@ -99,7 +100,6 @@ int start_server() {
       printf("Failed\n");
       return 1;
     }
-    fflush(stdout);
   };
 
   wl_list *prev = wl_display_get_client_list(disp);

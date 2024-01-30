@@ -22,6 +22,8 @@ typedef struct wl_callback wl_callback;
   };
 
 int main() {
+  setvbuf(stdout, NULL, _IONBF, 0);
+
   wl_display *server;
   int init = 0;
   int s;
