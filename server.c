@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <wayland-server.h>
 
+typedef struct wl_resouce wl_resouce;
+typedef struct wl_message wl_message;
+typedef struct wl_resource wl_resource;
+typedef struct wl_listener wl_listener;
 typedef struct wl_display wl_display;
 typedef struct wl_protocol_logger wl_protocol_logger;
 typedef struct wl_display wl_display;
@@ -10,9 +14,18 @@ typedef struct wl_event_source wl_event_source;
 typedef struct wl_list wl_list;
 typedef struct wl_event_loop wl_event_loop;
 
+// void format_resource(wl_resouce *resource) {}
+
 void logger_func(void *user_data, enum wl_protocol_logger_type direction,
                  const struct wl_protocol_logger_message *message) {
+  wl_message msg = *message->message;
+
   printf("[LOGGER]\n");
+  if (direction == WL_PROTOCOL_LOGGER_REQUEST) {
+    printf("\t[req] => [Msg]: %s\n", msg.name);
+  } else if (direction == WL_PROTOCOL_LOGGER_EVENT) {
+    printf("\t[ev]  => [Msg]: %s\n", msg.name);
+  }
 }
 
 void idle_cb_f(void *data) { printf("[Idle]\n"); }
@@ -20,6 +33,10 @@ void idle_cb_f(void *data) { printf("[Idle]\n"); }
 int evsource_cb_f(void *data) {
   printf("[Timer]\n");
   return 0;
+}
+void notif_cb_f(struct wl_listener *listener, void *data) {
+  // user_data = (wl_client)data;
+  printf("[Client]\n");
 }
 
 int fdsource_cb(int fd, uint32_t mask, void *data) {
@@ -46,6 +63,7 @@ wl_event_source *create_timer(wl_event_loop *evloop, void *user_data, int ms) {
 
 int start_server() {
   setvbuf(stdout, NULL, _IONBF, 0);
+
   int s;
   printf("server: creating display \n");
   wl_display *disp = wl_display_create();
@@ -53,6 +71,9 @@ int start_server() {
     printf("wl_display_create => null \n");
     return 1;
   }
+  wl_listener lstner = {.notify = notif_cb_f};
+  // lstner.link;
+  wl_display_add_client_created_listener(disp, &lstner);
 
   void *user_data = (void *)(0);
   wl_protocol_logger *logger = wl_display_add_protocol_logger(
@@ -84,7 +105,7 @@ int start_server() {
   wl_event_source *idle_source =
       wl_event_loop_add_idle(ev_loop, &idle_cb_f, (void *)0);
   if (!idle_source) {
-    printf("Runnig\n");
+    printf("failed\n");
     return 8;
   }
 
@@ -106,7 +127,7 @@ int start_server() {
   wl_list *list = prev->next;
   printf("list => %p\n", prev);
   while (list != prev) {
-    printf("count %p\n", list);
+    printf(" => %p\n", list);
     list = list->next;
   }
 
