@@ -8,6 +8,7 @@ typedef struct wl_display wl_display;
 typedef struct wl_display wl_display;
 typedef struct wl_event_source wl_event_source;
 typedef struct wl_list wl_list;
+typedef struct wl_event_loop wl_event_loop;
 
 void logger_func(void *user_data, enum wl_protocol_logger_type direction,
                  const struct wl_protocol_logger_message *message) {
@@ -26,6 +27,22 @@ int fdsource_cb(int fd, uint32_t mask, void *data) {
   return 0;
 }
 //
+
+wl_event_source *create_timer(wl_event_loop *evloop, void *user_data, int ms) {
+  wl_event_source *timer =
+      wl_event_loop_add_timer(evloop, &evsource_cb_f, user_data);
+  if (!timer) {
+    printf("event_loop_add_timer => null\n");
+    return NULL;
+  }
+
+  int status = wl_event_source_timer_update(timer, ms);
+  if (status != 0) {
+    return NULL;
+  }
+
+  return timer;
+}
 
 int start_server() {
   int s;
@@ -52,16 +69,14 @@ int start_server() {
   }
   printf("server listenieng\n");
 
-  struct wl_event_loop *ev_loop = wl_event_loop_create();
+  wl_event_loop *ev_loop = wl_event_loop_create();
   if (!ev_loop) {
     printf("failed\n");
     return 3;
   }
 
-  wl_event_source *evsource =
-      wl_event_loop_add_timer(ev_loop, &evsource_cb_f, (void *)0);
-  if (!evsource) {
-    printf("event_loop_add_timer => null\n");
+  wl_event_source *timer = create_timer(ev_loop, (void *)0, 1000);
+  if (!timer) {
     return 8;
   }
 
